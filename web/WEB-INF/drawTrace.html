@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>轨迹图</title>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=1.2"></script>
+</head>
+<body>
+<div style="width:1000px;height:800px;border:1px solid gray" id="container"></div>
+
+<script type="text/javascript">
+    window.onload = function () {
+        var map = new BMap.Map("container");
+        map.centerAndZoom(new BMap.Point(116.404, 39.915), 13);
+        map.addControl(new BMap.NavigationControl());               // 添加平移缩放控件
+        map.addControl(new BMap.ScaleControl());                    // 添加比例尺控件
+        map.addControl(new BMap.OverviewMapControl());              //添加缩略地图控件
+
+        map.clearOverlays();                        //清除地图上所有的覆盖物
+        var driving = new BMap.DrivingRoute(map);    //创建驾车实例
+
+        var pointArr = [];
+        var lng_99 = [120.17207, 120.15871, 120.17364, 120.16661, 120.18146, 120.18513, 120.12695, 120.13438, 120.13182, 120.17796, 120.16895, 120.17796, 120.1053, 120.1053, 120.090126, 120.16017, 120.16017];
+        var lat_99 = [30.276024, 30.294077, 30.278664, 30.30112, 30.288265, 30.303371, 30.302208, 30.280405, 30.279192, 30.316452, 30.293541, 30.316452, 30.305138, 30.305138, 30.30229, 30.293665, 30.293665];
+        for (var i = 0; i < lat_99.length; i++) {
+            var dic = new Array(); //定义一个字典
+            dic['lng'] = lng_99[i];      // 添加字典的元素( key:value)
+            dic['lat'] = lat_99[i];
+            pointArr.push(dic);
+        }
+        // 坐标点数据
+        // var pointArr = [{lng: 120.17207, lat: 30.276024},{lng: 120.15871, lat: 30.294077},{lng: 120.16661, lat: 30.278664},{lng: 120.18146, lat: 30.30112}];
+        console.log(pointArr)
+
+        // 生成坐标点
+        var trackPoint = [];
+        for (var i = 0, j = pointArr.length; i < j; i++) {
+            trackPoint.push(new BMap.Point(pointArr[i].lng, pointArr[i].lat));
+        }
+
+        for (var i = 0; i < trackPoint.length; i++) {
+            if (i != trackPoint.length - 1) {
+                driving.search(trackPoint[i], trackPoint[i + 1]);
+            }
+        }
+
+
+        driving.setSearchCompleteCallback(function () {
+            var pts = driving.getResults().getPlan(0).getRoute(0).getPath();    //通过驾车实例，获得一系列点的数组
+
+            // 画线
+            var polyline = new BMap.Polyline(trackPoint, {
+                strokeColor: "#1869AD",
+                strokeWeight: 3,
+                strokeOpacity: 1
+            });
+            map.addOverlay(polyline);
+
+            // 画图标、想要展示的起点终点途经点
+            for (var i = 0; i < trackPoint.length; i++) {
+                var lab;
+                if (i == 0) {
+                    lab = new BMap.Label("起点", {position: trackPoint[i]});
+                } else if (i == trackPoint.length - 1) {
+                    lab = new BMap.Label("终点", {position: trackPoint[i]});
+                } else {
+                    lab = new BMap.Label(i + 1, {position: trackPoint[i]})
+                }
+                var marker = new BMap.Marker(trackPoint[i])
+                map.addOverlay(marker);
+                map.addOverlay(lab);
+            }
+            map.setViewport(trackPoint);
+        });
+    }
+</script>
+
+</body>
+</html>
+</body>
+</html>
